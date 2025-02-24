@@ -2,45 +2,47 @@
 
 流程文档参考[KFERMercer/OpenWrt-CI](https://github.com/KFERMercer/OpenWrt-CI)，十分感谢！
 
-预置机型有小米4A千兆版、小米3Gv2、小米CR6606、小米CR6608、小米CR6609、红米AC2100、小米AC2100、小米4、小米3G、小米3Pro、斐讯K2P。
+使用的固件源码包括openwrt官方，以及coolsnowwolf、Lienol、immortalwrt、x-wrt维护的版本，详见[表格](#固件源码)。
 
-默认编译第一个，即小米4A千兆版。如需要其他机型，在运行workflow界面点开`选择机型`的下拉框，即可手动选择其他机型。
+预置机型有小米4A千兆版、小米CR6606、红米AX6S等，详见`preset*/headers.json`。
 
-需要其他机型可参考以上，并修改templet目录下的各文件，以作新增机型，[使用教程](templet/instruction.md)。
+**快速生成固件 ---> 登陆GitHub，fork此仓库，点击上方`Actions`，选择左侧流程中的`build XXX`运行，运行完毕即可下载固件。示意如下：**
 
-喜欢的话，Star一下，方便再找。
+<img src="extra-files/images/action_running.gif" width="70%" ></img>
 
-## 使用本项目你需要:
+选择机型：在run workflow界面点开`选择设备`的下拉框，即可手动选择机型。
+
+如预置机型中没有你需要的，可以使用[templet](templet)目录下的文件新增机型。
+
+喜欢的话，右上角Star一下，方便再找。
+
+## 使用本项目你需要
 
 - GitHub 账号
 
 - GitHub Actions 基本使用技能
 
-#### 若要高度定制固件，需要掌握一定的Liunx、OpenWrt、[Actions](https://docs.github.com/cn/actions)等相关知识，途径：自行搜索学习
+**Liunx、OpenWrt、[Actions](https://docs.github.com/cn/actions)等相关知识，可自行搜索学习**
 
-## 使用教程:
+## 使用教程
+
+<details>
+  
+  <summary>点击展开/关闭</summary>
 
 ### 1. 注册GitHub账号并开启GitHub Actions
 
 ### 2. fork [hugcabbage/shared-lede](https://github.com/hugcabbage/shared-lede)
 
-### 3. 设置Actions secrets
-
-只上传到artifact，可以跳过此步。
-
-进入GitHub Settings(点头像) → Developer settings → Personal access tokens → Generate new token，Note随意填，Expiration建议选`No expiration`，Select scopes里勾选`repo`、`workflow`，点Generate token，复制下长串token。
-
-进入你fork的项目shared-lede下，点Settings → Secrets → Actions → New repository secret，Name填`RELEASE_FIRMWARE`，Value填复制的token，点Add secret。
-
-### 4. 自定义固件
+### 3. 自定义固件
 
 什么也不修改，按默认配置，可以跳过此步。
 
-以小米4A千兆版为例，主要修改四个文件，在preset-models目录中。
+每个机型关联三个文件，在preset*目录中。
 
-> 1clone.sh
+- [数字].clone.sh
 
-固件源码和插件源码，新增插件源时，建议先在本地测试下是否缺依赖。
+此脚本用来拉取固件源码和扩展插件源码，新增插件源时，建议先在本地测试下是否缺依赖。
 
 常用的克隆命令如下（克隆理解为下载即可）：
 
@@ -48,9 +50,9 @@
 
 `git clone -b 分支名 链接`
 
-> 1modify.sh
+- [数字].modify.sh
 
-固件初始化设置，修改登录IP、主机名、WiFi名称等。
+此脚本用于固件初始化设置，修改登录IP、主机名、WiFi名称等。
 
 此脚本用到最多的命令是sed，详细用法参见[链接](https://www.runoob.com/linux/linux-comm-sed.html)，这里只简单说明。
 
@@ -68,13 +70,13 @@
 
 原字符串记为str1，新字符串记为str2，自定义设置改动str2位置即可，如果你改动了str1，那么命令在源码中就匹配不到东西了，替换也就无效了。
 
-🎈🎈🎈 引用
+>🎈🎈🎈 各基础命令的用法可参考该[链接](https://github.com/danshui-git/shuoming/blob/master/ming.md)，适合新手查阅。
 
-各基础命令的用法可参考该[链接](https://github.com/danshui-git/shuoming/blob/master/ming.md)，个人觉得写得很详细，非常适合新手看。当然该作者仓库内还有其他详细的教程，有兴趣的自行查阅。
+- [数字].config
 
-> 1.config
+该文件对应本地编译执行make menuconfig后生成的.config文件。
 
-只带luci应用、theme这两部分，流程中会转为.config，并自动补全为完整的。
+该文件主要包含luci应用，流程中会自动转为完整的.config。
 
 增减插件修改这个文件即可，以argon主题为例，格式如下：
 
@@ -84,80 +86,183 @@
 
  `# CONFIG_PACKAGE_luci-theme-argon is not set`  未选中是这种
 
-> release_content.txt
+### 4. Actions中手动开始编译流程
 
-此文本仅作release记录，其中的IP、密码与固件并无关联，怎么改都可以，不修改也可以。
-
-### 5. Actions中手动开始编译流程
-
-选择你的`Workflow`，点击Run workflow，按需填内容，运行即可。
+选择你需要的`build XXX`workflow，再点击`Run workflow`，按需填内容，运行即可。
 
 各选项说明如下:
 
-> 超频到1100Mhz: 
+- 超频到1100Mhz:
 
-默认不勾选。仅适用于5.10内核，所有预置机型默认皆为5.10内核。
+仅`build lede`有此选项。
 
-> 使用5.15内核: 
+默认不勾选。仅适用于5.10内核，除红米AX6S外，其余机型默认皆为5.10内核。
 
-默认不勾选。目前仅适用于lienol源码的机型，除小米4A千兆版和小米3Gv2外，其余都是lienol源码。
+- 使用5.15内核:
 
-lean lede源码中package/lean/mtk-eip93编译会报错，勿用。
+仅`build lede`有此选项。
 
-> 选择机型: 
+默认不勾选。lean lede源码勾选此项时，编译小米4A千兆版和小米3Gv2时会报错，勿用。
 
-默认为小米4A千兆版。点开下拉框，可以选择不同的机型。
+红米AX6S只有5.15内核，不必勾选。
 
-> 上传到release: 
+- 选择机型:
 
-默认勾选。推荐，空间无限，单文件不能超过2GB，有内容记录。 release区见下图：
+点开下拉框，可以选择不同的机型。
 
-<img src="templet/images/release_zone.png" width="70%" ></img>
+- 上传到release:
 
-> 上传到artifact: 
+默认勾选。单文件不能超过2GB，可添加内容记录。 release区见下图：
 
-默认不勾选。不推荐，无内容记录。 artifact区见下图：
+<img src="extra-files/images/release_zone.png" width="70%" ></img>
 
-<img src="templet/images/artifact_zone.png" width="70%" ></img>
+- 上传到artifact:
 
-> 版本描述: 
+默认不勾选。artifact区见下图：
+
+<img src="extra-files/images/artifact_zone.png" width="70%" ></img>
+
+- 版本描述:
 
 可作一些简单记录，会在release中显示。
 
-### 6. 编译完成
+### 5. 编译完成
 
-Actions流程顺利完成后，去release(或者artifact)下载你的固件，allfiles.zip是所有文件的打包。
+Actions流程顺利完成后，去release(或者artifact)下载你的固件，release中allfiles.zip是所有文件的打包。
 
-## 各机型对应文件说明
+</details>
 
-|机型|文件|
-|:----:|:----:|
-|小米4A千兆版<br/>小米3Gv2|1.config、1clone.sh、1modify.sh|
-|小米4<br/>小米3G<br/>小米CR6606<br/>小米CR6608<br/>小米CR6609<br/>小米3Pro|2.config、2clone.sh、2modify.sh|
-|红米AC2100<br/>小米AC2100|3.config、3clone.sh、3modify.sh|
-|斐讯K2P|4.config、4clone.sh、4modify.sh|
+## preset*目录说明
+
+<details>
+  
+  <summary>点击展开/关闭</summary>
+
+全部机型信息可查看文件`preset*/headers.json`，各配置目录略有不同，如[preset-openwrt/headers.json](preset-openwrt/headers.json)。
+
+### config说明
+- 1.config用于小闪存设备（16MB及以下）
+- 2.config用于大闪存设备
+
+### 标号规则
+- headers.json中每个机型的数字标号，用于选择对应的clone.sh、modify.sh、config。
+- 按headers.json中的机型标号，找不到对应的clone.sh、modify.sh、config时，默认选择1.clone.sh、1.modify.sh、1.config。
+
+### 自定义配置
+#### 方法一
+修改clone.sh、modify.sh、config三个文件
+
+#### 方法二
+- 添加新的clone.sh、modify.sh、config，并用数字标号，比如5.clone.sh、5.modify.sh、5.config
+- 修改headers.json指定机型的标号，比如把`"xiaomi-ac2100": ["1", "ramips", "mt7621", "xiaomi_mi-router-ac2100"]`改成`"xiaomi-ac2100": ["5", "ramips", "mt7621", "xiaomi_mi-router-ac2100"]`
+
+#### 方法三
+- 添加新的clone.sh、modify.sh、config，并用数字标号，比如5.clone.sh、5.modify.sh、5.config
+- 向headers.json添加新机型，比如添加`"xiaomi-ac2100-xxx": ["5", "ramips", "mt7621", "xiaomi_mi-router-ac2100"]`
+- 向`.github/workflows/build-xxx.yml`inputs.model.options添加新机型，比如向.github/workflows/build-openwrt.yml添加`- 'xiaomi-ac2100-xxx'`
+
+</details>
+
+## 本地测试
+
+<details>
+  
+  <summary>点击展开/关闭</summary>
+
+### 本地测试生成.config文件
+
+> 以生成preset-openwrt/other.config为例，编译流程`build openwrt`中`other`机型对应当前的other.config。
+
+1. 使用Codespace或本地环境，克隆本仓库，并进入仓库根目录。
+
+   建议使用Codespace，只需要一个浏览器即可，且不会存在网络问题。
+
+1. 安装yq工具。
+
+   Codespace中安装yq，命令如下：
+
+    ```shell
+   wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O ~/.local/bin/yq
+   chmod +x ~/.local/bin/yq
+    ```
+
+   本地Linux环境可使用snap安装，命令如下：
+
+    ```shell
+   snap install yq
+    ```
+
+1. 运行以下命令，克隆openwrt源码。
+
+    ```shell
+    chmod +x extra-files/clone.sh
+    ./extra-files/clone.sh extra-files/clone.toml openwrt
+    cd _test_code
+    ```
+
+   clone.sh脚本可以不加参数运行，但需根据提示输入clone.toml路径、源码名、测试文件存放目录（可选）。
+
+1. （可选）从已有的.config修改。
+
+     ```shell
+     cp ../preset-openwrt/other.config .config
+     ```
+
+1. 运行以下命令，开始配置。
+
+    ```shell
+    make menuconfig
+    ```
+
+1. 配置完成后，_test_code目录里，也就是现在所在的目录下已生成.config文件。
+
+1. （可选）简化一下.config文件，只保留常用的配置项，运行以下命令。
+
+   ```shell
+   chmod +x ../extra-files/ptext
+   ../extra-files/ptext c2m .config ../preset-openwrt/other.config
+   ```
+
+1. 若执行了上一步的简化则该步跳过。将.config文件复制到本仓库的preset-openwrt目录下，运行以下命令。
+
+   ```shell
+   cp .config ../preset-openwrt/other.config
+   ```
+
+1. 提交到远程仓库，开始运行编译流程`build openwrt`，选择机型`other`。
+
+</details>
+
+## 固件源码
+
+<details>
+  
+  <summary>点击展开/关闭</summary>
+
+|配置目录|流程名|源码|
+|:----:|:----:|:----:|
+|preset-lede|build lede|[coolsnowwolf/lede](https://github.com/coolsnowwolf/lede)|
+|preset-lienol-openwrt|build lienol openwrt|[Lienol/openwrt](https://github.com/Lienol/openwrt)|
+|preset-openwrt|build openwrt|[openwrt/openwrt](https://github.com/openwrt/openwrt)|
+|preset-immortalwrt|build immortalwrt|[immortalwrt/immortalwrt](https://github.com/immortalwrt/immortalwrt)|
+|preset-x-wrt|build x-wrt|[x-wrt/x-wrt](https://github.com/x-wrt/x-wrt)|
+
+</details>
 
 ## 提示
 
-1.直接在Actions中运行`固件编译`就能编译出固件，但默认插件数量较少，对插件有增、减需要的，到`[数字].config`中自行选择。若在`[数字]clone.sh`中添加了插件源，在`[数字].config`要作对应修改，建议先在本地make menuconfig测试。
+1. 直接在Actions中运行`build XXX`就能编译出固件，但默认插件数量较少，对插件有增、减需要的，可修改`preset*/[数字].config`。若在`[数字].clone.sh`中添加了插件源，在`[数字].config`要作对应修改，建议先在本地make menuconfig测试。
 
-2.超频方案默认不启用，方案来自该[帖子](https://www.right.com.cn/forum/thread-4042045-1-1.html)。
+1. 超频方案默认不启用，方案来自该[帖子](https://www.right.com.cn/forum/thread-4042045-1-1.html)。
 
-3.小米4A千兆版和小米3Gv2需修改分区才能在breed直刷，参考该[帖子](https://www.right.com.cn/forum/thread-4052254-1-1.html)，本项目中已修改好。
+1. 小米4A千兆版和小米3Gv2需修改分区才能在breed直刷，参考该[帖子](https://www.right.com.cn/forum/thread-4052254-1-1.html)，本项目中已修改好，见脚本[modify-xiaomi-router-4a-3g-v2.sh](extra-files/modify-xiaomi-router-4a-3g-v2.sh)。
 
-4.小米4A千兆版和小米3Gv2闪存小，若编译插件太多，包体积超出16064K，则不会生成sysupgrade.bin。
-
-可以去[官方插件库](https://downloads.openwrt.org/snapshots/packages/mips_24kc/packages/)参考各插件大小，下方也列出了几个较大插件的最近版本的体积:
-
-UnblockNeteaseMusic-Go_0.2.13 --- 2.05MB<br/>
-luci-app-openclash_0.44.16 --- 2.14MB<br/>
-luci-app-vssr_1.23 --- 2.87MB<br/>
-xray-core_1.5.3 --- 5.63MB<br/>
+1. 小米4A千兆版和小米3Gv2闪存小(仅16MB)，若编译插件太多，包体积超出闪存上限，则不会生成sysupgrade.bin。
 
 ---
 
 ## 最后
 
-不准备出什么详细的教程，自己摸索吧。
+无特别详细的教程，自己摸索吧。
 
 如有问题，请利用庞大的网络知识库，能快速解决你的问题。
